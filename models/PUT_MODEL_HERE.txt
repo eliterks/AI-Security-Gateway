@@ -1,0 +1,1 @@
+Copy your trained prompt_injection_pipeline.joblib into this directory. This text file is only a placeholder.

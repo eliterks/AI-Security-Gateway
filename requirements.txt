@@ -1,0 +1,12 @@
+fastapi==0.115.12
+uvicorn==0.34.0
+python-dotenv==1.0.1
+python-multipart==0.0.20
+scikit-learn==1.6.1
+joblib==1.4.2
+SQLAlchemy==2.0.39
+huggingface_hub==0.29.3
+google-genai==1.12.1
+torch
+transformers
+openai
