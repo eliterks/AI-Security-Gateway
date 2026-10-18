@@ -26,6 +26,10 @@ from app.config import (
     GEMINI_MODEL,
 )
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 Base.metadata.create_all(bind=engine)
 load_classifier()
 
@@ -35,6 +39,20 @@ app = FastAPI(
     version="1.0.0",
 )
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = BASE_DIR / "static"
+
+app.mount(
+    "/static",
+    StaticFiles(directory=str(STATIC_DIR)),
+    name="static",
+)
+
+
+@app.get("/", include_in_schema=False)
+def home():
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 def get_current_user(

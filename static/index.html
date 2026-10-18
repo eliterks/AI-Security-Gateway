@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1020" />
+    <title>AI Security Gateway</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <div class="brand-icon">S</div>
+          <div>
+            <div class="brand-name">Sentinel AI</div>
+            <div class="brand-caption">AI SECURITY GATEWAY</div>
+          </div>
+        </a>
+        <div class="topbar-right">
+          <span class="status-dot"></span>
+          <span id="connection-status">API connection not checked</span>
+          <button
+            id="logout-button"
+            class="button button-ghost hidden"
+            type="button"
+          >
+            Log out
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="eyebrow"><span></span> SECURE AI PLAYGROUND</div>
+          <h1>One gateway.<br /><span>Multiple models.</span></h1>
+          <p>
+            Test model routing, compare local and cloud inference, and inspect
+            security decisions in one place.
+          </p>
+        </section>
+
+        <section id="login-section" class="panel login-panel">
+          <div class="section-heading">
+            <div>
+              <div class="eyebrow">AUTHENTICATION</div>
+              <h2>Welcome back</h2>
+              <p>Sign in using your existing gateway account.</p>
+            </div>
+            <div class="icon-tile">↗</div>
+          </div>
+
+          <form id="login-form">
+            <label for="username">Username</label>
+            <input
+              id="username"
+              name="username"
+              autocomplete="username"
+              placeholder="Enter your username"
+              required
+            />
+
+            <label for="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              required
+            />
+
+            <button
+              id="login-button"
+              class="button button-primary full-width"
+              type="submit"
+            >
+              Sign in <span>→</span>
+            </button>
+            <div id="login-error" class="message error hidden"></div>
+          </form>
+          <p class="footnote">
+            Don't have an account? Register through the existing
+            <a href="/docs" target="_blank" rel="noreferrer"
+              >API documentation</a
+            >.
+          </p>
+        </section>
+
+        <section id="workspace" class="hidden">
+          <div class="workspace-heading">
+            <div>
+              <div class="eyebrow">INFERENCE WORKSPACE</div>
+              <h2>Test your prompt</h2>
+            </div>
+            <span class="auth-badge">✓ Authenticated</span>
+          </div>
+
+          <div class="panel">
+            <div class="section-heading">
+              <div>
+                <h3>01 / Select inference mode</h3>
+                <p>Choose how your request should be processed.</p>
+              </div>
+            </div>
+
+            <div class="model-grid">
+              <button
+                class="model-card selected"
+                data-mode="router"
+                type="button"
+                aria-pressed="true"
+              >
+                <span class="model-icon">⌘</span>
+                <span class="model-title">Auto Router</span>
+                <span class="model-description">
+                  Automatically choose a model
+                </span>
+                <span class="model-tag">RECOMMENDED</span>
+              </button>
+
+              <button
+                class="model-card"
+                data-mode="slm"
+                type="button"
+                aria-pressed="false"
+              >
+                <span class="model-icon">◈</span>
+                <span class="model-title">Local SLM</span>
+                <span class="model-description">
+                  SmolLM2 · 360M parameters
+                </span>
+                <span class="model-tag">LOCAL INFERENCE</span>
+              </button>
+
+              <button
+                class="model-card"
+                data-mode="llm"
+                type="button"
+                aria-pressed="false"
+              >
+                <span class="model-icon">✳</span>
+                <span class="model-title">Gemini LLM</span>
+                <span class="model-description"> Gemini cloud inference </span>
+                <span class="model-tag">CLOUD INFERENCE</span>
+              </button>
+            </div>
+
+            <div class="prompt-header">
+              <label for="prompt">02 / Your prompt</label>
+              <span id="character-count">0 characters</span>
+            </div>
+
+            <textarea
+              id="prompt"
+              rows="5"
+              maxlength="10000"
+              placeholder="Ask a question, test a prompt, or try a security scenario..."
+              required
+            ></textarea>
+
+            <div class="prompt-footer">
+              <span class="security-hint">
+                <span class="mini-shield">✓</span>
+                Security checks enabled
+              </span>
+              <button
+                id="send-button"
+                class="button button-primary"
+                type="button"
+              >
+                Run request <span>→</span>
+              </button>
+            </div>
+
+            <div id="request-error" class="message error hidden"></div>
+          </div>
+
+          <section id="result-section" class="panel result-panel hidden">
+            <div class="result-heading">
+              <div>
+                <div class="eyebrow">03 / INFERENCE RESULT</div>
+                <h3 id="result-title">Model response</h3>
+              </div>
+              <span id="result-status" class="result-status">Completed</span>
+            </div>
+
+            <div id="routing-card" class="routing-card hidden">
+              <span class="routing-icon">⌘</span>
+              <div>
+                <div class="muted-label">ROUTING DECISION</div>
+                <strong id="routing-model">—</strong>
+                <p id="routing-reason"></p>
+              </div>
+            </div>
+
+            <div class="response-box">
+              <div class="response-box-header">
+                <span>GENERATED RESPONSE</span>
+                <button id="copy-button" class="text-button" type="button">
+                  Copy response
+                </button>
+              </div>
+              <pre id="response-text">
+Your model response will appear here.</pre
+              >
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric">
+                <span>Selected model</span>
+                <strong id="metric-model">—</strong>
+              </div>
+              <div class="metric">
+                <span>Provider</span>
+                <strong id="metric-provider">—</strong>
+              </div>
+              <div class="metric">
+                <span>Latency</span>
+                <strong id="metric-latency">—</strong>
+              </div>
+              <div class="metric">
+                <span>Injection score</span>
+                <strong id="metric-injection">—</strong>
+              </div>
+            </div>
+
+            <div class="security-result">
+              <div class="security-result-title">
+                <span class="mini-shield">✓</span>
+                Security inspection
+              </div>
+              <div class="security-details">
+                <div>
+                  <span>Prompt-injection check</span>
+                  <strong id="security-injection">—</strong>
+                </div>
+                <div>
+                  <span>PII redaction</span>
+                  <strong id="security-pii">—</strong>
+                </div>
+              </div>
+              <details id="sanitized-details" class="sanitized-details hidden">
+                <summary>View sanitized prompt</summary>
+                <pre id="sanitized-prompt"></pre>
+              </details>
+            </div>
+          </section>
+
+          <footer class="workspace-footer">
+            <span>Sentinel AI · Security Gateway Demo</span>
+            <a href="/docs" target="_blank" rel="noreferrer"
+              >Explore API docs ↗</a
+            >
+          </footer>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+  </body>
+</html>
