@@ -10,3 +10,6 @@ google-genai==1.12.1
 torch
 transformers
 openai
+psycopg2-binary>=2.9.9
+asyncpg
+google-cloud-aiplatform==1.62.0
