@@ -44,6 +44,9 @@ async function readJson(response) {
     }
 
     if (response.status === 401) {
+      if (response.url.includes("/auth/token")) {
+        throw new Error(message || "Incorrect username or password.");
+      }
       logout();
       throw new Error("Session expired. Please sign in again.");
     }

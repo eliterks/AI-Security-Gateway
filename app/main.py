@@ -24,7 +24,10 @@ from app.config import (
     ACCESS_TOKEN_MINUTES,
     INJECTION_THRESHOLD,
     GEMINI_MODEL,
+    ADMIN_USERNAME,
+    ADMIN_PASSWORD,
 )
+from app.database import SessionLocal
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
@@ -32,6 +35,23 @@ from fastapi.responses import FileResponse
 
 Base.metadata.create_all(bind=engine)
 load_classifier()
+
+# Auto-seed the admin user account so it always exists even across fresh container deployments
+def seed_admin_user():
+    db = SessionLocal()
+    try:
+        if not db.query(User).filter(User.username == ADMIN_USERNAME).first():
+            admin_user = User(
+                username=ADMIN_USERNAME,
+                password_hash=hash_password(ADMIN_PASSWORD),
+            )
+            db.add(admin_user)
+            db.commit()
+            print(f"[AUTH] Pre-seeded admin user '{ADMIN_USERNAME}' successfully.")
+    finally:
+        db.close()
+
+seed_admin_user()
 
 app = FastAPI(
     title="AI Security Gateway",
@@ -100,15 +120,13 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/auth/register", tags=["authentication"], status_code=201)
+@app.post("/auth/register", tags=["authentication"], status_code=201, include_in_schema=False)
 def register(body: RegisterRequest, db: Annotated[Session, Depends(get_db)]):
-    if db.query(User).filter(User.username == body.username).first():
-        raise HTTPException(status_code=409, detail="Username already exists")
-    user = User(username=body.username, password_hash=hash_password(body.password))
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return {"id": user.id, "username": user.username}
+    # Public registration disabled in production to protect database & LLM quotas
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Public user registration is disabled on this gateway.",
+    )
 
 
 @app.post("/auth/token", tags=["authentication"])
